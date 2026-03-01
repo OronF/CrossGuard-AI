@@ -2,16 +2,31 @@
 
 import { useState } from "react";
 import { Shield, Eye, EyeOff } from 'lucide-react';
+import { useRouter } from "next/router";
 
 export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const router = useRouter();
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Handle login logic here
-        console.log('Login attempt:', { username, password });
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const response = await fetch(
+        '/api/auth/login',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        }
+      )
+
+      if (response.ok) {
+        router.push('/home'); // Redirect after successful login
+      } else {
+        const data = await response.json();
+        console.error(data.error);
+      }
     };
 
     return (
