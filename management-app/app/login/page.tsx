@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Shield, Eye, EyeOff } from 'lucide-react';
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
     const [username, setUsername] = useState('');
@@ -22,7 +22,7 @@ export default function Login() {
       )
 
       if (response.ok) {
-        router.push('/home'); // Redirect after successful login
+        router.push('/dashboard'); // Redirect after successful login
       } else {
         const data = await response.json();
         console.error(data.error);
