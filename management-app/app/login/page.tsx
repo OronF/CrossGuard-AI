@@ -8,24 +8,40 @@ export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      const response = await fetch(
-        '/api/auth/login',
-        {
+      setError(null);
+      setIsLoading(true);
+
+      try {
+        const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
-        }
-      )
+        });
 
-      if (response.ok) {
-        router.push('/dashboard'); // Redirect after successful login
-      } else {
-        const data = await response.json();
-        console.error(data.error);
+        console.log('Login response status:', response.status, 'ok:', response.ok);
+        
+        if (response.ok) {
+          console.log('Login successful, attempting redirect...');
+          // Add a small delay to ensure cookie is set before navigation
+          await new Promise(resolve => setTimeout(resolve, 150));
+          router.push('/dashboard');
+          console.log('Redirect triggered');
+        } else {
+          const data = await response.json();
+          console.error('Login error response:', data);
+          setError(data.error || 'Login failed. Please try again.');
+        }
+      } catch (err) {
+        console.error('Caught error:', err);
+        setError('An unexpected error occurred. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -43,6 +59,12 @@ export default function Login() {
           </div>
 
           <h2 className="text-black mb-6">Sign In</h2>
+          
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
           
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Username Field */}
@@ -96,9 +118,10 @@ export default function Login() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 rounded-lg transition-colors disabled:cursor-not-allowed"
             >
-              Login In
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
         </div>

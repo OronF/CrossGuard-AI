@@ -30,8 +30,8 @@ export async function POST(request: Request) {
 
   // Generate JWT
   const jwtSecret = process.env.JWT_SECRET;
-  const jwtExpiry = process.env.JWT_EXPIRES_IN;
-  if (!jwtSecret || !jwtExpiry) {
+  const jwtExpiry = process.env.JWT_EXPIRES_IN || '1h';
+  if (!jwtSecret) {
     // Fail fast in case env variables are missing
     return NextResponse.json(
       { error: 'Server configuration error' },
@@ -49,13 +49,30 @@ export async function POST(request: Request) {
     signOptions
   );
 
+  // Calculate maxAge in seconds (1h = 3600s, 7d = 604800s)
+  const getMaxAge = (expiryStr: string): number => {
+    const matches = expiryStr.match(/(\d+)([smhd]?)/);
+    if (!matches) return 3600; // default 1 hour
+    const value = parseInt(matches[1]);
+    const unit = matches[2] || 's';
+    const multipliers: { [key: string]: number } = {
+      s: 1,
+      m: 60,
+      h: 3600,
+      d: 86400
+    };
+    const maxAge = value * (multipliers[unit] || 3600);
+    console.log(`getMaxAge(${expiryStr}): ${maxAge} seconds`);
+    return maxAge;
+  };
+
   // Set an HttpOnly Cookie (security attribute)
   const response = NextResponse.json({ message: 'Login successful' });
   response.cookies.set('authToken', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production', // Enable HTTPS in the production environment
     sameSite: 'lax', // Prevent CSRF attacks
-    maxAge: Number(process.env.JWT_EXPIRES_IN),
+    maxAge: getMaxAge(jwtExpiry),
     path: '/'
   });
 
