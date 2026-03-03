@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useMemo, useState } from 'react';
+import { useRouter } from "next/navigation";
 
 import {
   Breadcrumb,
@@ -64,8 +65,7 @@ const DATA = {
   user: {
     name: 'Oron Fink',
     permission: 'Administrator',
-    avatar:
-      'https://pbs.twimg.com/profile_images/1909615404789506048/MTqvRsjo_400x400.jpg',
+    avatar: ''
   },
   navMain: [
     {
@@ -129,6 +129,13 @@ export const RadixSidebarDemo = () => {
   const userNameAvatarTrim = (username: string) => {
     return username[0];
   } 
+
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+  };
 
   return (
     <SidebarProvider>
@@ -253,9 +260,9 @@ export const RadixSidebarDemo = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
                     <LogOut />
-                    Log out
+                    Log Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
