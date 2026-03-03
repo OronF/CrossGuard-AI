@@ -38,8 +38,8 @@ export async function middleware(request: NextRequest) {
   } else {
     // 6. Login page: If authenticated, redirect to the dashboard
     if (token && verifyJwt(token)) {
-      console.log(`[Middleware] User already authenticated, redirecting from login to dashboard`);
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      console.log(`[Middleware] User already authenticated, redirecting from login to mainpage`);
+      return NextResponse.redirect(new URL('/mainpage', request.url));
     }
   }
 

@@ -30,7 +30,7 @@ export default function Login() {
           console.log('Login successful, attempting redirect...');
           // Add a small delay to ensure cookie is set before navigation
           await new Promise(resolve => setTimeout(resolve, 150));
-          router.push('/dashboard');
+          router.push('/mainpage');
           console.log('Redirect triggered');
         } else {
           const data = await response.json();
