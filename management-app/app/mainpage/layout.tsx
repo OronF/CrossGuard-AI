@@ -1,9 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
-import Link from 'next/link';
 
 import {
   Breadcrumb,
@@ -53,6 +52,7 @@ import {
   AvatarImage,
 } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Spinner } from "@/components/ui/spinner"
 
 import { Shield, Settings, MessageSquare, Menu, FileText, BarChart3, ChevronDown, Trash2, UserX, BookOpen,
   Bot,
@@ -63,11 +63,6 @@ import { Shield, Settings, MessageSquare, Menu, FileText, BarChart3, ChevronDown
   Home
 } from "lucide-react";
 const DATA = {
-  user: {
-    name: 'Oron Fink',
-    permission: 'Administrator',
-    avatar: ''
-  },
   navMain: [
     {
       title: 'Home',
@@ -124,14 +119,54 @@ export default function MainPageLayout({ children }: { children: React.ReactNode
 
 export const RadixSidebarDemo = ({ children }: { children: React.ReactNode }) => {
   const isMobile = useIsMobile();
-
+  const router = useRouter();
   const [activePage, setActivePage] = useState('');
+  const [user, setUser] = useState<{ name: string; permission_id: string; } | null>(null);
+  const [permission, setPermission] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/user');
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(userData);
+        
+          if (userData.permission_id) {
+            const permissionsRes = await fetch(`/api/permission?id=${userData.permission_id}`);
+            if (permissionsRes.ok) {
+              const permissionsData = await permissionsRes.json();
+              setPermission(permissionsData.permission_name);
+            }
+          }
+        } else {
+          router.push('/login');
+          return; 
+        }
+      } catch (error) {
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchUser();
+  }, [router]);
+
+  console.log(user);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Spinner />
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500">Loading</div>
+      </div>
+    );
+  }
 
   const userNameAvatarTrim = (username: string) => {
     return username[0];
-  } 
-
-  const router = useRouter();
+  }
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -220,18 +255,14 @@ export const RadixSidebarDemo = ({ children }: { children: React.ReactNode }) =>
                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   >
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage
-                        src={DATA.user.avatar}
-                        alt={DATA.user.name}
-                      />
-                      <AvatarFallback className="rounded-lg">{userNameAvatarTrim(DATA.user.name)}</AvatarFallback>
+                      <AvatarFallback className="rounded-lg">{userNameAvatarTrim(user?.name as string)}</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-semibold">
-                        {DATA.user.name}
+                        {user?.name}
                       </span>
                       <span className="truncate text-xs">
-                        {DATA.user.permission}
+                        {permission}
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto size-4" />
@@ -246,20 +277,16 @@ export const RadixSidebarDemo = ({ children }: { children: React.ReactNode }) =>
                   <DropdownMenuLabel className="p-0 font-normal">
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                       <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarImage
-                          src={DATA.user.avatar}
-                          alt={DATA.user.name}
-                        />
                         <AvatarFallback className="rounded-lg">
-                          {userNameAvatarTrim(DATA.user.name)}
+                          {userNameAvatarTrim(user?.name as string)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="grid flex-1 text-left text-sm leading-tight">
                         <span className="truncate font-semibold">
-                          {DATA.user.name}
+                          {user?.name}
                         </span>
                         <span className="truncate text-xs">
-                          {DATA.user.permission}
+                          {permission}
                         </span>
                       </div>
                     </div>

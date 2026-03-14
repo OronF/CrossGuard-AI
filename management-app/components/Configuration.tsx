@@ -22,9 +22,11 @@ import { Label } from "./ui/label";
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Input } from "./ui/input";
-
+import { createId } from '@paralleldrive/cuid2';
 
 export default function Configuration() {
+    const id = createId(); 
+    console.log(id);
     return (
         <div className="flex flex-col container mx-auto gap-4">
             <header className="flex flex-col shrink-0 bg-background/40 px-6 gap-2">
